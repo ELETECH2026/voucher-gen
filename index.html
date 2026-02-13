@@ -7,110 +7,59 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        body { background: #e0e0e0; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
         
-        body { 
-            background: #e0e0e0; 
-            min-height: 100vh; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            padding: 10px;
-        }
+        /* Layout Blocks */
+        .container { background: white; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 950px; overflow: hidden; display: none; }
+        .header { background: #06402B; color: #FFFF00; padding: 20px 15px; text-align: center; border-bottom: 4px solid #FFFF00; position: relative; }
+        .branch-display { color: #fff; font-size: 1.1rem; margin-top: 5px; font-weight: bold; letter-spacing: 1px; }
 
-        .container { 
-            background: white; 
-            border-radius: 8px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
-            width: 100%; 
-            max-width: 950px; 
-            overflow: hidden; 
-        }
-
-        .header { 
-            background: #06402B; 
-            color: #FFFF00; 
-            padding: 20px 15px; 
-            text-align: center; 
-        }
-
-        .header h1 { font-size: 1.5rem; }
-
-        .form-container { 
-            padding: 20px; 
-            display: grid; 
-            grid-template-columns: 1fr 1fr; 
-            gap: 15px; 
-            background: #f5f5f5; 
-        }
-
-        @media (max-width: 768px) {
-            .form-container { grid-template-columns: 1fr; padding: 15px; }
-            .full-width { grid-column: span 1 !important; }
-            .buttons { grid-column: span 1 !important; }
-        }
-
+        /* Form Styling */
+        .form-container { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f5f5f5; }
         .full-width { grid-column: span 2; }
-        
         .form-group { display: flex; flex-direction: column; }
-        
-        .form-group label { 
-            font-size: 0.75rem; 
-            font-weight: 700; 
-            color: #444; 
-            margin-bottom: 4px; 
-            text-transform: uppercase;
-        }
+        .form-group label { font-size: 0.75rem; font-weight: 700; color: #444; margin-bottom: 4px; text-transform: uppercase; }
+        .form-group input, .form-group select, .form-group textarea { padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background: white; }
+        .form-group input[readonly] { background: #e9ecef; cursor: not-allowed; font-weight: bold; color: #27ae60; }
 
-        .form-group input, 
-        .form-group select, 
-        .form-group textarea { 
-            padding: 12px; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-            font-size: 14px; 
-            background: white; 
-            width: 100%;
-        }
+        /* Buttons & Links */
+        .buttons { grid-column: span 2; text-align: center; padding-top: 10px; }
+        .btn { padding: 15px 30px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; max-width: 300px; }
+        .btn-gen { background: #27ae60; color: white; transition: 0.3s; }
+        .btn-gen:hover { background: #219150; transform: translateY(-2px); }
+        .reset-link { text-transform: none; font-weight: normal; color: #007bff; cursor: pointer; float: right; text-decoration: underline; font-size: 10px; }
 
-        .form-group input[readonly] { 
-            background: #e9ecef; 
-            cursor: not-allowed; 
-            font-weight: bold; 
-            color: #27ae60; 
-        }
+        /* Login Screen */
+        #loginOverlay { position: fixed; inset: 0; background: #06402B; display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        .login-box { background: white; padding: 40px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .login-box h2 { color: #06402B; margin-bottom: 20px; font-size: 1.8rem; }
+        .login-box select, .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; }
+        .btn-login { background: #27ae60; color: white; border: none; width: 100%; padding: 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
 
-        .buttons { 
-            grid-column: span 2; 
-            text-align: center; 
-            padding-top: 10px; 
-        }
-
-        .btn { 
-            padding: 15px 30px; 
-            border: none; 
-            border-radius: 4px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            transition: 0.2s; 
-            font-size: 16px; 
-            width: 100%; 
-            max-width: 300px;
-        }
-
-        .btn-gen { background: #27ae60; color: white; }
-        .btn-gen:hover { background: #219150; }
-
-        .sub-label { margin-top: 12px; }
+        @media (max-width: 768px) { .form-container { grid-template-columns: 1fr; } .full-width { grid-column: span 1 !important; } }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header"><h1>Payment Voucher</h1></div>
+
+    <div id="loginOverlay">
+        <div class="login-box">
+            <h2>EasyLife Login</h2>
+            <select id="loginBranch"></select>
+            <input type="password" id="loginPass" placeholder="Enter Branch Password">
+            <button class="btn-login" onclick="handleLogin()">Access Voucher</button>
+            <p id="errorMsg" style="color:red; display:none; margin-top:10px; font-weight:bold;">Incorrect Password!</p>
+        </div>
+    </div>
+
+    <div class="container" id="mainApp">
+        <div class="header">
+            <h1>PAYMENT VOUCHER</h1>
+            <div class="branch-display">LOCATION: <span id="currentBranch"></span></div>
+        </div>
         <form id="voucherForm" class="form-container">
-            
             <div class="form-group">
-                <label>Voucher SL.No:</label>
-                <input type="text" id="voucherNo" placeholder="Enter Serial No.">
+                <label>Voucher SL.No: <span class="reset-link" onclick="resetCounter()">Reset No.</span></label>
+                <input type="text" id="voucherNo" readonly>
             </div>
             <div class="form-group">
                 <label>Date:</label>
@@ -120,14 +69,11 @@
             <div class="form-group">
                 <label>Vender Bill No:</label>
                 <input type="text" id="vBillNo" placeholder="Bill Number">
-                
-                <label class="sub-label">Vender Bill Date:</label>
+                <label style="margin-top:12px;">Vender Bill Date:</label>
                 <input type="date" id="vBillDate">
-                
-                <label class="sub-label">Tally voucher No:</label>
+                <label style="margin-top:12px;">Tally voucher No:</label>
                 <input type="text" id="tallyNo" placeholder="Tally Number">
-                
-                <label class="sub-label">Tally voucher Date:</label>
+                <label style="margin-top:12px;">Tally voucher Date:</label>
                 <input type="date" id="tallyDate">
             </div>
 
@@ -139,12 +85,10 @@
                     <option value="GK">GK</option>
                     <option value="ELS">ELS</option>
                 </select>
-                
-                <label class="sub-label">Payee Name:</label>
-                <input type="text" id="payee" placeholder="Receiver Name" oninput="this.value = this.value.toUpperCase();">
-                
-                <label class="sub-label">Contact:</label>
-                <input type="text" id="contact" placeholder="Mobile Number" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                <label style="margin-top:12px;">Payee Name:</label>
+                <input type="text" id="payee" oninput="this.value = this.value.toUpperCase();">
+                <label style="margin-top:12px;">Contact:</label>
+                <input type="text" id="contact" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             </div>
 
             <div class="form-group full-width">
@@ -153,7 +97,7 @@
             </div>
             <div class="form-group full-width">
                 <label>Amount In Word:</label>
-                <input type="text" id="amountWord" readonly placeholder="Calculated automatically...">
+                <input type="text" id="amountWord" readonly>
             </div>
 
             <div class="form-group">
@@ -168,8 +112,7 @@
             <div class="form-group">
                 <label>Reference No:</label>
                 <input type="text" id="refNo" placeholder="UTR / Ref No.">
-                
-                <label class="sub-label">Payment Date:</label>
+                <label style="margin-top:12px;">Payment Date:</label>
                 <input type="date" id="payDate">
             </div>
 
@@ -185,31 +128,97 @@
             </div>
             <div class="form-group full-width">
                 <label>COMMENTS (If Any):</label>
-                <textarea id="comments" rows="3" placeholder="Enter comments..."></textarea>
+                <textarea id="comments" rows="3"></textarea>
             </div>
 
             <div class="form-group">
                 <label>Originator Name:</label>
-                <input type="text" id="origName" placeholder="Enter Name" oninput="this.value = this.value.toUpperCase();">
+                <input type="text" id="origName" oninput="this.value = this.value.toUpperCase();">
             </div>
-
             <div class="form-group">
                 <label>Checker Name:</label>
-                <input type="text" id="checkName" placeholder="Enter Name" oninput="this.value = this.value.toUpperCase();">
+                <input type="text" id="checkName" oninput="this.value = this.value.toUpperCase();">
             </div>
 
             <div class="buttons">
-                <button type="button" class="btn btn-gen" onclick="generatePDF()">Generate Voucher PDF</button>
+                <button type="button" class="btn btn-gen" onclick="generatePDF()">Generate & Print PDF</button>
+                <br><br>
+                <a href="#" onclick="logout()" style="color:#666; font-size:12px; text-decoration:none;">Logout (Switch Branch)</a>
             </div>
         </form>
     </div>
 
     <script>
+        // Data from your provided Branch/Password images
+        const branchCredentials = {
+            "Banavasi": "ELE@BNS2026", "Sirsi": "ELE@SIR2026", "Siddapura": "ELE@SID2026",
+            "Mundagod": "ELE@MUD2026", "Haliyala": "ELE@HAL2026", "Yellapura": "ELE@YEL2026",
+            "Honnavara": "ELE@HON2026", "Kumta": "ELE@KUM2026", "Bhatkal": "ELE@BHA2026",
+            "Hoskote": "ELE@HOS2026", "Padubidire": "ELE@PAD2026", "Udupi": "ELE@UDU2026",
+            "Hiriadka": "ELE@HIR2026", "Kundapura": "ELE@KUN2026", "Hebri": "ELE@HEB2026",
+            "Bajagoli": "ELE@BAJ2026", "Ajekar": "ELE@AJE2026", "Hosmar": "ELE@HOSM2026",
+            "Karkala": "ELE@KAR2026", "Koppa": "ELE@KOP2026", "Kalasa": "ELE@KAL2026",
+            "N R Pura": "ELE@NRP2026", "Mudigere": "ELE@MUDI2026", "Chikamagauru": "ELE@CHK2026",
+            "Thirthahalli": "ELE@THI2026", "Sagara": "ELE@SAG2026", "Hosanagara": "ELE@HOSA2026",
+            "Soraba": "ELE@SOR2026", "Shikaripura": "ELE@SHI2026", "Shimoga": "ELE@SHIV2026",
+            "Dhoti Point": "ELE@DHO2026", "Kadur": "ELE@KAD2026", "Belman": "ELE@BEL2026",
+            "Byndoor": "ELE@BYN2026", "Chikamagauru Sonalika": "ELE@SONL2026", "HO": "ELE@HO2026"
+        };
+
+        // Populate Branch Dropdown
+        const branchSelect = document.getElementById('loginBranch');
+        branchSelect.innerHTML = '<option value="" disabled selected>-- Select Your Branch --</option>';
+        Object.keys(branchCredentials).sort().forEach(b => {
+            const opt = document.createElement('option');
+            opt.value = b; opt.textContent = b; branchSelect.appendChild(opt);
+        });
+
+        function handleLogin() {
+            const branch = branchSelect.value;
+            const passInput = document.getElementById('loginPass').value;
+            if (branch && passInput === branchCredentials[branch]) {
+                localStorage.setItem('activeBranch', branch);
+                checkAuth();
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+            }
+        }
+
+        function checkAuth() {
+            const branch = localStorage.getItem('activeBranch');
+            if (branch) {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainApp').style.display = 'block';
+                document.getElementById('currentBranch').innerText = branch.toUpperCase();
+                initializeVoucherNo();
+            }
+        }
+
+        function logout() { localStorage.removeItem('activeBranch'); location.reload(); }
+
         window.onload = function() {
+            checkAuth();
             const today = new Date().toISOString().split('T')[0];
             document.querySelectorAll('input[type="date"]').forEach(el => el.value = today);
         };
 
+        // START SERIAL AT 01 FOR EACH BRANCH
+        function initializeVoucherNo() {
+            const branch = localStorage.getItem('activeBranch');
+            let storageKey = 'vNo_' + branch;
+            let lastNo = localStorage.getItem(storageKey);
+            document.getElementById('voucherNo').value = (lastNo ? parseInt(lastNo) + 1 : 1).toString().padStart(2, '0');
+        }
+
+        function resetCounter() {
+            const branch = localStorage.getItem('activeBranch');
+            if(confirm(`Reset SL.No for ${branch} back to 01?`)) {
+                localStorage.removeItem('vNo_' + branch);
+                initializeVoucherNo();
+            }
+        }
+
+        // Currency & Word Logic
         function formatIndianCurrency(numStr) {
             let x = numStr.replace(/,/g, '');
             if (isNaN(x) || x === "") return "";
@@ -222,7 +231,6 @@
         function numberToWordsIndian(num) {
             const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
             const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-            if (num === 0) return "Zero";
             const convert = (n) => {
                 if (n < 20) return a[n];
                 if (n < 100) return b[Math.floor(n / 10)] + (n % 10 !== 0 ? " " + a[n % 10] : "");
@@ -234,7 +242,7 @@
             if (num >= 100000) { str += convert(Math.floor(num / 100000)) + " Lakh "; num %= 100000; }
             if (num >= 1000) { str += convert(Math.floor(num / 1000)) + " Thousand "; num %= 1000; }
             str += convert(num);
-            return str.trim();
+            return str.trim() || "Zero";
         }
 
         function updateAmountInWords() {
@@ -246,13 +254,17 @@
             document.getElementById('amountWord').value = numeric === 0 ? "Zero Only" : numberToWordsIndian(numeric) + " Only";
         }
 
+        // PDF Generation with Branch Name at Top
         function generatePDF() {
+            const vNo = document.getElementById('voucherNo').value;
+            const branch = localStorage.getItem('activeBranch');
+            localStorage.setItem('vNo_' + branch, vNo);
+
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = 210, margin = 10, contentW = 190;
             let y = 15;
 
-            // Helper to draw the styled boxes
             const drawField = (x, y, w, h, label, value, pct = 0.5) => {
                 const lw = w * pct;
                 doc.setDrawColor(0); doc.setLineWidth(0.4);
@@ -261,26 +273,23 @@
                 doc.setFont("helvetica", "bold"); doc.setFontSize(9);
                 doc.text(label, x + (lw/2), y + (h/2) + 1.2, { align: "center" });
                 doc.setFont("helvetica", "normal"); doc.setFontSize(8.5);
-                doc.text(value.toString(), x + lw + ((w - lw)/2), y + (h/2) + 1.2, { align: "center" });
+                doc.text(value ? value.toString() : "", x + lw + ((w - lw)/2), y + (h/2) + 1.2, { align: "center" });
             };
 
-            // Outer Border
             doc.setDrawColor(0); doc.setLineWidth(0.5); doc.rect(5, 5, 200, 287); 
+            doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+            doc.text("BRANCH: " + branch.toUpperCase(), margin, y - 5); // BRANCH NAME ON PDF
 
-            // Header
             doc.setFillColor(230, 230, 230); doc.rect(margin, y, contentW, 10, 'FD');
             doc.setFont("helvetica", "bold"); doc.setFontSize(14);
             doc.text("PAYMENT VOUCHER", pageWidth/2, y + 7, { align: "center" });
             y += 20;
 
             const formatDate = (d) => d ? d.split('-').reverse().join('-') : "";
-
-            // Voucher Header Details
-            drawField(margin, y, 80, 10, "Voucher SL.No:", document.getElementById('voucherNo').value, 0.5);
+            drawField(margin, y, 80, 10, "Voucher SL.No:", vNo, 0.5);
             drawField(margin + 123, y, 67, 10, "Date :", formatDate(document.getElementById('date').value), 0.4);
             y += 15;
 
-            // Billing and Payee Info
             const gy = y;
             const detL = [
                 ["Vender Bill No :", document.getElementById('vBillNo').value], 
@@ -289,7 +298,6 @@
                 ["Tally voucher Date :", formatDate(document.getElementById('tallyDate').value)]
             ];
             detL.forEach((r, i) => drawField(margin, gy + (i*10), 80, 10, r[0], r[1], 0.5));
-            
             const detR = [
                 ["Division :", document.getElementById('division').value || ""], 
                 ["Payee Name :", document.getElementById('payee').value], 
@@ -298,34 +306,23 @@
             detR.forEach((r, i) => drawField(margin + 123, gy + (i*10), 67, 10, r[0], r[1], 0.58));
             y = gy + 45;
 
-            // Amount Section
             drawField(margin, y, contentW, 10, "Payment Amount :", document.getElementById('amount').value, 0.23);
             y += 10;
             drawField(margin, y, contentW, 10, "Amount In Word :", document.getElementById('amountWord').value, 0.23);
             y += 15;
 
-            // --- START NEW LAYOUT FROM IMAGE ---
-            // Left Box: Payment Method (Larger Height)
             drawField(margin, y, 95, 20, "Payment Method :", document.getElementById('method').value || "", 0.45);
-            
-            // Right Box: Payment Reference No and Payment Date (Stacked)
             drawField(margin + 110, y, 80, 10, "Payment Reference No :", document.getElementById('refNo').value, 0.6);
             drawField(margin + 110, y + 10, 80, 10, "Payment Date:", formatDate(document.getElementById('payDate').value), 0.6);
-            
             y += 25; 
-            // --- END NEW LAYOUT ---
 
-            // Purpose and Comments
-            const pObj = document.getElementById('Purpose');
-            const purposeText = pObj.selectedIndex > 0 ? pObj.options[pObj.selectedIndex].text : "";
+            const purposeText = document.getElementById('Purpose').value;
             drawField(margin, y, contentW, 10, "Purpose :", purposeText, 0.23);
             y += 12;
             drawField(margin, y, contentW, 10, "COMMENTS( IF Any)", document.getElementById('comments').value, 0.23);
             y += 20;
 
-            // Signatures Section
             const colW = contentW / 3;
-            const hH = 10, bH = 12;
             const sigs = [
                 {l: "Originator", n: document.getElementById('origName').value}, 
                 {l: "Checked By", n: document.getElementById('checkName').value}, 
@@ -333,13 +330,14 @@
             ];
             sigs.forEach((sig, i) => {
                 const sx = margin + (i * colW);
-                doc.setFillColor(210, 210, 210); doc.rect(sx, y, colW, hH, 'FD');
+                doc.setFillColor(210, 210, 210); doc.rect(sx, y, colW, 10, 'FD');
                 doc.setFont("helvetica", "bold"); doc.text(sig.l, sx + (colW / 2), y + 6.5, { align: "center" });
-                doc.setFillColor(255, 255, 255); doc.rect(sx, y + hH, colW, bH, 'FD');
-                doc.setFont("helvetica", "normal"); doc.text(sig.n, sx + (colW / 2), y + hH + 7.5, { align: "center" });
+                doc.setFillColor(255, 255, 255); doc.rect(sx, y + 10, colW, 12, 'FD');
+                doc.setFont("helvetica", "normal"); doc.text(sig.n, sx + (colW / 2), y + 17.5, { align: "center" });
             });
 
-            doc.save(`Voucher_${document.getElementById('voucherNo').value || 'File'}.pdf`);
+            doc.save(`Voucher_${vNo}_${branch}.pdf`);
+            initializeVoucherNo();
         }
     </script>
 </body>
