@@ -101,15 +101,6 @@
         .btn-gen:hover { background: #219150; }
 
         .sub-label { margin-top: 12px; }
-        
-        .reset-link {
-            text-transform: none;
-            font-weight: normal;
-            color: #007bff;
-            cursor: pointer;
-            float: right;
-            text-decoration: underline;
-        }
     </style>
 </head>
 <body>
@@ -118,8 +109,8 @@
         <form id="voucherForm" class="form-container">
             
             <div class="form-group">
-                <label>Voucher SL.No: <span class="reset-link" onclick="resetCounter()">Reset No.</span></label>
-                <input type="text" id="voucherNo" readonly>
+                <label>Voucher SL.No:</label>
+                <input type="text" id="voucherNo" placeholder="Enter Serial No.">
             </div>
             <div class="form-group">
                 <label>Date:</label>
@@ -214,32 +205,11 @@
     </div>
 
     <script>
-        // ON LOAD INITIALIZATION
         window.onload = function() {
-            // Set default dates to today
             const today = new Date().toISOString().split('T')[0];
             document.querySelectorAll('input[type="date"]').forEach(el => el.value = today);
-
-            // Handle Serial Number
-            initializeVoucherNo();
         };
 
-        function initializeVoucherNo() {
-            let lastNo = localStorage.getItem('lastVoucherNo');
-            if (!lastNo) {
-                lastNo = 0; // Starting number
-            }
-            document.getElementById('voucherNo').value = parseInt(lastNo) + 1;
-        }
-
-        function resetCounter() {
-            if(confirm("Reset serial number to 1001?")) {
-                localStorage.removeItem('lastVoucherNo');
-                initializeVoucherNo();
-            }
-        }
-
-        // CURRENCY FORMATTING
         function formatIndianCurrency(numStr) {
             let x = numStr.replace(/,/g, '');
             if (isNaN(x) || x === "") return "";
@@ -276,18 +246,13 @@
             document.getElementById('amountWord').value = numeric === 0 ? "Zero Only" : numberToWordsIndian(numeric) + " Only";
         }
 
-        // PDF GENERATION
         function generatePDF() {
-            const voucherNo = document.getElementById('voucherNo').value;
-            
-            // Save the current number to local storage so next time it increments
-            localStorage.setItem('lastVoucherNo', voucherNo);
-
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = 210, margin = 10, contentW = 190;
             let y = 15;
 
+            // Helper to draw the styled boxes
             const drawField = (x, y, w, h, label, value, pct = 0.5) => {
                 const lw = w * pct;
                 doc.setDrawColor(0); doc.setLineWidth(0.4);
@@ -299,8 +264,10 @@
                 doc.text(value.toString(), x + lw + ((w - lw)/2), y + (h/2) + 1.2, { align: "center" });
             };
 
+            // Outer Border
             doc.setDrawColor(0); doc.setLineWidth(0.5); doc.rect(5, 5, 200, 287); 
 
+            // Header
             doc.setFillColor(230, 230, 230); doc.rect(margin, y, contentW, 10, 'FD');
             doc.setFont("helvetica", "bold"); doc.setFontSize(14);
             doc.text("PAYMENT VOUCHER", pageWidth/2, y + 7, { align: "center" });
@@ -308,10 +275,12 @@
 
             const formatDate = (d) => d ? d.split('-').reverse().join('-') : "";
 
-            drawField(margin, y, 80, 10, "Voucher SL.No:", voucherNo, 0.5);
+            // Voucher Header Details
+            drawField(margin, y, 80, 10, "Voucher SL.No:", document.getElementById('voucherNo').value, 0.5);
             drawField(margin + 123, y, 67, 10, "Date :", formatDate(document.getElementById('date').value), 0.4);
             y += 15;
 
+            // Billing and Payee Info
             const gy = y;
             const detL = [
                 ["Vender Bill No :", document.getElementById('vBillNo').value], 
@@ -329,17 +298,24 @@
             detR.forEach((r, i) => drawField(margin + 123, gy + (i*10), 67, 10, r[0], r[1], 0.58));
             y = gy + 45;
 
+            // Amount Section
             drawField(margin, y, contentW, 10, "Payment Amount :", document.getElementById('amount').value, 0.23);
             y += 10;
             drawField(margin, y, contentW, 10, "Amount In Word :", document.getElementById('amountWord').value, 0.23);
             y += 15;
 
+            // --- START NEW LAYOUT FROM IMAGE ---
+            // Left Box: Payment Method (Larger Height)
             drawField(margin, y, 95, 20, "Payment Method :", document.getElementById('method').value || "", 0.45);
+            
+            // Right Box: Payment Reference No and Payment Date (Stacked)
             drawField(margin + 110, y, 80, 10, "Payment Reference No :", document.getElementById('refNo').value, 0.6);
             drawField(margin + 110, y + 10, 80, 10, "Payment Date:", formatDate(document.getElementById('payDate').value), 0.6);
             
             y += 25; 
+            // --- END NEW LAYOUT ---
 
+            // Purpose and Comments
             const pObj = document.getElementById('Purpose');
             const purposeText = pObj.selectedIndex > 0 ? pObj.options[pObj.selectedIndex].text : "";
             drawField(margin, y, contentW, 10, "Purpose :", purposeText, 0.23);
@@ -347,6 +323,7 @@
             drawField(margin, y, contentW, 10, "COMMENTS( IF Any)", document.getElementById('comments').value, 0.23);
             y += 20;
 
+            // Signatures Section
             const colW = contentW / 3;
             const hH = 10, bH = 12;
             const sigs = [
@@ -362,10 +339,7 @@
                 doc.setFont("helvetica", "normal"); doc.text(sig.n, sx + (colW / 2), y + hH + 7.5, { align: "center" });
             });
 
-            doc.save(`Voucher_${voucherNo}.pdf`);
-            
-            // Increment the number for the next one immediately after saving
-            initializeVoucherNo();
+            doc.save(`Voucher_${document.getElementById('voucherNo').value || 'File'}.pdf`);
         }
     </script>
 </body>
