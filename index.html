@@ -2,52 +2,134 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EasyLife Payment Voucher Generator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EasyLife Payment Voucher</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { background: #e0e0e0; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 10px; }
+        /* Base Reset & Mobile Optimization */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
         
-        /* Layout Blocks */
-        .container { background: white; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 100%; max-width: 950px; overflow: hidden; display: none; }
-        .header { background: #06402B; color: #FFFF00; padding: 20px 15px; text-align: center; border-bottom: 4px solid #FFFF00; position: relative; }
-        .branch-display { color: #fff; font-size: 1.1rem; margin-top: 5px; font-weight: bold; letter-spacing: 1px; }
+        body { 
+            background: #f0f2f5; 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            padding: 10px;
+            color: #333;
+        }
 
-        /* Form Styling */
-        .form-container { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: #f5f5f5; }
-        .full-width { grid-column: span 2; }
-        .form-group { display: flex; flex-direction: column; }
-        .form-group label { font-size: 0.75rem; font-weight: 700; color: #444; margin-bottom: 4px; text-transform: uppercase; }
-        .form-group input, .form-group select, .form-group textarea { padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; background: white; }
-        .form-group input[readonly] { background: #e9ecef; cursor: not-allowed; font-weight: bold; color: #27ae60; }
+        /* Responsive Container */
+        .container { 
+            background: white; 
+            width: 100%; 
+            max-width: 900px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1); 
+            display: none; 
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
 
-        /* Buttons & Links */
-        .buttons { grid-column: span 2; text-align: center; padding-top: 10px; }
-        .btn { padding: 15px 30px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 16px; width: 100%; max-width: 300px; }
-        .btn-gen { background: #27ae60; color: white; transition: 0.3s; }
-        .btn-gen:hover { background: #219150; transform: translateY(-2px); }
-        .reset-link { text-transform: none; font-weight: normal; color: #007bff; cursor: pointer; float: right; text-decoration: underline; font-size: 10px; }
+        /* Auto-Aligning Header */
+        .header { 
+            background: #06402B; 
+            color: #FFFF00; 
+            padding: 20px 15px; 
+            text-align: center; 
+            border-bottom: 5px solid #FFFF00; 
+        }
+        .header h1 { font-size: clamp(1.2rem, 5vw, 1.8rem); margin-bottom: 5px; }
+        .branch-display { color: #fff; font-size: 0.9rem; letter-spacing: 1px; }
 
-        /* Login Screen */
-        #loginOverlay { position: fixed; inset: 0; background: #06402B; display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        .login-box { background: white; padding: 40px; border-radius: 12px; width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-        .login-box h2 { color: #06402B; margin-bottom: 20px; font-size: 1.8rem; }
-        .login-box select, .login-box input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; }
-        .btn-login { background: #27ae60; color: white; border: none; width: 100%; padding: 14px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+        /* THE AUTO-ALIGN GRID */
+        .form-container { 
+            padding: 20px; 
+            display: flex;
+            flex-wrap: wrap; /* This handles the auto-alignment */
+            gap: 15px; 
+        }
 
-        @media (max-width: 768px) { .form-container { grid-template-columns: 1fr; } .full-width { grid-column: span 1 !important; } }
+        .form-group { 
+            flex: 1 1 calc(50% - 15px); /* Default 2 columns */
+            display: flex; 
+            flex-direction: column; 
+            min-width: 280px; /* Forces stack on narrow screens */
+        }
+
+        .full-width { flex: 1 1 100% !important; }
+
+        /* Labels & Inputs */
+        label { 
+            font-size: 0.75rem; 
+            font-weight: 700; 
+            color: #555; 
+            margin-bottom: 6px; 
+            display: flex; 
+            justify-content: space-between;
+        }
+
+        input, select, textarea { 
+            padding: 12px; 
+            border: 1px solid #ced4da; 
+            border-radius: 6px; 
+            font-size: 16px; /* 16px prevents iOS zoom-in */
+            width: 100%;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus { border-color: #06402B; outline: none; background: #f9fffb; }
+        input[readonly] { background: #e9ecef; font-weight: bold; color: #27ae60; }
+
+        /* Button Section */
+        .button-area { 
+            width: 100%; 
+            padding: 20px; 
+            text-align: center; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 15px;
+        }
+        
+        .btn-gen { 
+            background: #27ae60; 
+            color: white; 
+            border: none; 
+            padding: 18px; 
+            border-radius: 8px; 
+            width: 100%; 
+            max-width: 400px; 
+            font-size: 1.1rem; 
+            font-weight: bold; 
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(39, 174, 96, 0.3);
+        }
+
+        .reset-link { color: #007bff; cursor: pointer; text-decoration: none; font-size: 10px; }
+
+        /* Login Overlay */
+        #loginOverlay { position: fixed; inset: 0; background: #06402B; display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
+        .login-box { background: white; padding: 30px; border-radius: 15px; width: 100%; max-width: 380px; text-align: center; }
+        .login-box input, .login-box select { margin-bottom: 15px; }
+
+        /* Mobile Specific Tweaks */
+        @media (max-width: 480px) {
+            .container { border-radius: 0; }
+            body { padding: 0; }
+            .form-container { padding: 15px; }
+            .form-group { flex: 1 1 100%; } /* Strict single column on phones */
+        }
     </style>
 </head>
 <body>
 
     <div id="loginOverlay">
         <div class="login-box">
-            <h2>EasyLife Login</h2>
+            <h2 style="color:#06402B; margin-bottom:20px;">EasyLife Login</h2>
             <select id="loginBranch"></select>
-            <input type="password" id="loginPass" placeholder="Enter Branch Password">
-            <button class="btn-login" onclick="handleLogin()">Access Voucher</button>
-            <p id="errorMsg" style="color:red; display:none; margin-top:10px; font-weight:bold;">Incorrect Password!</p>
+            <input type="password" id="loginPass" placeholder="Branch Password">
+            <button onclick="handleLogin()" style="background:#27ae60; color:white; border:none; width:100%; padding:15px; border-radius:8px; font-weight:bold; cursor:pointer;">Enter Portal</button>
+            <p id="errorMsg" style="color:red; display:none; margin-top:10px;">Invalid Credentials</p>
         </div>
     </div>
 
@@ -56,9 +138,10 @@
             <h1>PAYMENT VOUCHER</h1>
             <div class="branch-display">LOCATION: <span id="currentBranch"></span></div>
         </div>
+
         <form id="voucherForm" class="form-container">
             <div class="form-group">
-                <label>Voucher SL.No: <span class="reset-link" onclick="resetCounter()">Reset No.</span></label>
+                <label>Voucher SL.No: <span class="reset-link" onclick="resetCounter()">[Reset]</span></label>
                 <input type="text" id="voucherNo" readonly>
             </div>
             <div class="form-group">
@@ -67,89 +150,104 @@
             </div>
 
             <div class="form-group">
-                <label>Vender Bill No:</label>
-                <input type="text" id="vBillNo" placeholder="Bill Number">
-                <label style="margin-top:12px;">Vender Bill Date:</label>
+                <label>Vendor Bill No:</label>
+                <input type="text" id="vBillNo" placeholder="Bill #">
+            </div>
+            <div class="form-group">
+                <label>Vendor Bill Date:</label>
                 <input type="date" id="vBillDate">
-                <label style="margin-top:12px;">Tally voucher No:</label>
-                <input type="text" id="tallyNo" placeholder="Tally Number">
-                <label style="margin-top:12px;">Tally voucher Date:</label>
+            </div>
+
+            <div class="form-group">
+                <label>Tally Voucher No:</label>
+                <input type="text" id="tallyNo" placeholder="Tally #">
+            </div>
+            <div class="form-group">
+                <label>Tally Voucher Date:</label>
                 <input type="date" id="tallyDate">
             </div>
 
             <div class="form-group">
                 <label>Division:</label>
                 <select id="division">
-                    <option value="" selected disabled>--Select Division--</option>
+                    <option value="" disabled selected>-- Select --</option>
                     <option value="ELE">ELE</option>
                     <option value="GK">GK</option>
                     <option value="ELS">ELS</option>
                 </select>
-                <label style="margin-top:12px;">Payee Name:</label>
-                <input type="text" id="payee" oninput="this.value = this.value.toUpperCase();">
-                <label style="margin-top:12px;">Contact:</label>
-                <input type="text" id="contact" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+            </div>
+            <div class="form-group">
+                <label>Payee Name:</label>
+                <input type="text" id="payee" placeholder="Full Name" oninput="this.value = this.value.toUpperCase();">
             </div>
 
             <div class="form-group full-width">
-                <label>Payment Amount:</label>
-                <input type="text" id="amount" oninput="updateAmountInWords()" placeholder="Enter Amount">
+                <label>Contact Number:</label>
+                <input type="tel" id="contact" placeholder="10-digit mobile" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
             </div>
+
             <div class="form-group full-width">
-                <label>Amount In Word:</label>
+                <label>Payment Amount (₹):</label>
+                <input type="text" id="amount" oninput="updateAmountInWords()" placeholder="0.00">
+            </div>
+
+            <div class="form-group full-width">
+                <label>Amount In Words:</label>
                 <input type="text" id="amountWord" readonly>
             </div>
 
             <div class="form-group">
                 <label>Payment Method:</label>
                 <select id="method">
-                    <option value="" selected disabled>--Select Payment--</option>
+                    <option value="" disabled selected>-- Select --</option>
                     <option value="Cash">Cash</option>
                     <option value="Cheque">Cheque</option>
                     <option value="Bank Transfer">Bank Transfer</option>
                 </select>
             </div>
             <div class="form-group">
-                <label>Reference No:</label>
-                <input type="text" id="refNo" placeholder="UTR / Ref No.">
-                <label style="margin-top:12px;">Payment Date:</label>
+                <label>Ref/UTR No:</label>
+                <input type="text" id="refNo" placeholder="Reference #">
+            </div>
+
+            <div class="form-group full-width">
+                <label>Payment Date:</label>
                 <input type="date" id="payDate">
             </div>
 
             <div class="form-group full-width">
                 <label>Purpose:</label>
                 <select id="Purpose">
-                    <option value="" selected disabled>--Select Purpose--</option>
+                    <option value="" disabled selected>-- Select Purpose --</option>
                     <option value="Advance">Advance</option>
                     <option value="Expenses">Expenses</option>
                     <option value="Purchase">Purchase</option>
                     <option value="Others">Others</option>
                 </select>
             </div>
+
             <div class="form-group full-width">
-                <label>COMMENTS (If Any):</label>
-                <textarea id="comments" rows="3"></textarea>
+                <label>Comments (Optional):</label>
+                <textarea id="comments" rows="2"></textarea>
             </div>
 
             <div class="form-group">
-                <label>Originator Name:</label>
+                <label>Originator:</label>
                 <input type="text" id="origName" oninput="this.value = this.value.toUpperCase();">
             </div>
             <div class="form-group">
-                <label>Checker Name:</label>
+                <label>Checker:</label>
                 <input type="text" id="checkName" oninput="this.value = this.value.toUpperCase();">
             </div>
 
-            <div class="buttons">
-                <button type="button" class="btn btn-gen" onclick="generatePDF()">Generate & Print PDF</button>
-                <br><br>
-                <a href="#" onclick="logout()" style="color:#666; font-size:12px; text-decoration:none;">Logout (Switch Branch)</a>
+            <div class="button-area">
+                <button type="button" class="btn-gen" onclick="generatePDF()">GENERATE PDF</button>
+                <a href="#" onclick="logout()" style="color:#888; text-decoration:none; font-size:12px;">Switch Branch / Logout</a>
             </div>
         </form>
     </div>
 
     <script>
-        // Data from your provided Branch/Password images
         const branchCredentials = {
             "Banavasi": "ELE@BNS2026", "Sirsi": "ELE@SIR2026", "Siddapura": "ELE@SID2026",
             "Mundagod": "ELE@MUD2026", "Haliyala": "ELE@HAL2026", "Yellapura": "ELE@YEL2026",
@@ -165,7 +263,6 @@
             "Byndoor": "ELE@BYN2026", "Chikamagauru Sonalika": "ELE@SONL2026", "HO": "ELE@HO2026"
         };
 
-        // Populate Branch Dropdown
         const branchSelect = document.getElementById('loginBranch');
         branchSelect.innerHTML = '<option value="" disabled selected>-- Select Your Branch --</option>';
         Object.keys(branchCredentials).sort().forEach(b => {
@@ -202,23 +299,20 @@
             document.querySelectorAll('input[type="date"]').forEach(el => el.value = today);
         };
 
-        // START SERIAL AT 01 FOR EACH BRANCH
         function initializeVoucherNo() {
             const branch = localStorage.getItem('activeBranch');
-            let storageKey = 'vNo_' + branch;
-            let lastNo = localStorage.getItem(storageKey);
+            let lastNo = localStorage.getItem('vNo_' + branch);
             document.getElementById('voucherNo').value = (lastNo ? parseInt(lastNo) + 1 : 1).toString().padStart(2, '0');
         }
 
         function resetCounter() {
             const branch = localStorage.getItem('activeBranch');
-            if(confirm(`Reset SL.No for ${branch} back to 01?`)) {
+            if(confirm(`Reset SL.No for ${branch}?`)) {
                 localStorage.removeItem('vNo_' + branch);
                 initializeVoucherNo();
             }
         }
 
-        // Currency & Word Logic
         function formatIndianCurrency(numStr) {
             let x = numStr.replace(/,/g, '');
             if (isNaN(x) || x === "") return "";
@@ -254,7 +348,6 @@
             document.getElementById('amountWord').value = numeric === 0 ? "Zero Only" : numberToWordsIndian(numeric) + " Only";
         }
 
-        // PDF Generation with Branch Name at Top
         function generatePDF() {
             const vNo = document.getElementById('voucherNo').value;
             const branch = localStorage.getItem('activeBranch');
@@ -278,7 +371,7 @@
 
             doc.setDrawColor(0); doc.setLineWidth(0.5); doc.rect(5, 5, 200, 287); 
             doc.setFont("helvetica", "bold"); doc.setFontSize(10);
-            doc.text("BRANCH: " + branch.toUpperCase(), margin, y - 5); // BRANCH NAME ON PDF
+            doc.text("BRANCH: " + branch.toUpperCase(), margin, y - 5);
 
             doc.setFillColor(230, 230, 230); doc.rect(margin, y, contentW, 10, 'FD');
             doc.setFont("helvetica", "bold"); doc.setFontSize(14);
@@ -292,34 +385,34 @@
 
             const gy = y;
             const detL = [
-                ["Vender Bill No :", document.getElementById('vBillNo').value], 
-                ["Vender Bill Date :", formatDate(document.getElementById('vBillDate').value)], 
-                ["Tally voucher No :", document.getElementById('tallyNo').value], 
-                ["Tally voucher Date :", formatDate(document.getElementById('tallyDate').value)]
+                ["Vendor Bill No:", document.getElementById('vBillNo').value], 
+                ["Vendor Bill Date:", formatDate(document.getElementById('vBillDate').value)], 
+                ["Tally Voucher No:", document.getElementById('tallyNo').value], 
+                ["Tally Voucher Date:", formatDate(document.getElementById('tallyDate').value)]
             ];
             detL.forEach((r, i) => drawField(margin, gy + (i*10), 80, 10, r[0], r[1], 0.5));
             const detR = [
-                ["Division :", document.getElementById('division').value || ""], 
-                ["Payee Name :", document.getElementById('payee').value], 
-                ["Contact :", document.getElementById('contact').value]
+                ["Division:", document.getElementById('division').value || ""], 
+                ["Payee Name:", document.getElementById('payee').value], 
+                ["Contact:", document.getElementById('contact').value]
             ];
             detR.forEach((r, i) => drawField(margin + 123, gy + (i*10), 67, 10, r[0], r[1], 0.58));
             y = gy + 45;
 
-            drawField(margin, y, contentW, 10, "Payment Amount :", document.getElementById('amount').value, 0.23);
+            drawField(margin, y, contentW, 10, "Payment Amount:", document.getElementById('amount').value, 0.23);
             y += 10;
-            drawField(margin, y, contentW, 10, "Amount In Word :", document.getElementById('amountWord').value, 0.23);
+            drawField(margin, y, contentW, 10, "Amount In Word:", document.getElementById('amountWord').value, 0.23);
             y += 15;
 
-            drawField(margin, y, 95, 20, "Payment Method :", document.getElementById('method').value || "", 0.45);
-            drawField(margin + 110, y, 80, 10, "Payment Reference No :", document.getElementById('refNo').value, 0.6);
+            drawField(margin, y, 95, 20, "Payment Method:", document.getElementById('method').value || "", 0.45);
+            drawField(margin + 110, y, 80, 10, "Reference No:", document.getElementById('refNo').value, 0.6);
             drawField(margin + 110, y + 10, 80, 10, "Payment Date:", formatDate(document.getElementById('payDate').value), 0.6);
             y += 25; 
 
             const purposeText = document.getElementById('Purpose').value;
-            drawField(margin, y, contentW, 10, "Purpose :", purposeText, 0.23);
+            drawField(margin, y, contentW, 10, "Purpose:", purposeText, 0.23);
             y += 12;
-            drawField(margin, y, contentW, 10, "COMMENTS( IF Any)", document.getElementById('comments').value, 0.23);
+            drawField(margin, y, contentW, 10, "COMMENTS:", document.getElementById('comments').value, 0.23);
             y += 20;
 
             const colW = contentW / 3;
